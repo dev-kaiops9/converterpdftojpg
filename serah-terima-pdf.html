@@ -125,6 +125,28 @@
     border-radius:50%; cursor:pointer; font-size:11px; line-height:1; display:flex; align-items:center; justify-content:center;
   }
 
+  /* Daftar Hadir / Daftar Dinasan — upload foto */
+  .photo-list{ padding:14px 20px; display:flex; flex-wrap:wrap; gap:12px; border-bottom:1px solid var(--border); }
+  .photo-list:empty{ display:none; border-bottom:none; }
+  .photo-chip{ position:relative; width:86px; }
+  .photo-thumb{
+    width:86px; height:86px; object-fit:cover; border-radius:10px; border:1.5px solid var(--border);
+    display:block; background:var(--bg);
+  }
+  .photo-chip .remove{
+    position:absolute; top:-6px; right:-6px; width:20px; height:20px; border-radius:50%; border:none;
+    background:var(--danger); color:#fff; font-size:11px; line-height:1; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; box-shadow:0 0 0 2px #fff;
+  }
+  .photo-chip .fname{
+    font-size:10.5px; color:var(--ink-soft); margin-top:5px; text-align:center;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .attendance-note{
+    margin:0; padding:12px 20px; font-size:12px; color:#B45309; background:#FFFBEB;
+    line-height:1.5; border-top:1px solid var(--border);
+  }
+
   .actions{ padding:16px 20px; display:flex; justify-content:flex-end; gap:10px; flex-wrap:wrap; }
   button.primary{
     font-family:'Inter', sans-serif; font-weight:700; font-size:13.5px; background:var(--primary); color:#fff;
@@ -263,6 +285,20 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <div class="section-title">
+    <h2>Daftar Hadir / Daftar Dinasan</h2>
+    <span class="badge">Opsional · jadi halaman ke-2</span>
+  </div>
+  <div class="panel" style="margin-bottom:16px;">
+    <label class="drop" id="attendanceDrop">
+      <input type="file" id="attendanceInput" accept="image/*">
+      <div class="drop-icon">↑</div>
+      <p class="drop-title">Tarik foto Daftar Hadir / Daftar Dinasan ke sini, atau klik untuk pilih</p>
+    </label>
+    <div class="photo-list" id="attendanceList"></div>
+    <p class="attendance-note">⚠️ Pastikan Daftar Hadir Orientasi Halaman Landscape. Foto yang diunggah dalam posisi potret akan otomatis dirotasi menjadi landscape.</p>
   </div>
 
   <div class="section-title">
@@ -463,6 +499,111 @@ let zipFiles = [];      // { id, file }
 let resultBlobUrl = null;
 let isProcessing = false;
 
+/* ---- Daftar Hadir / Daftar Dinasan: upload foto (opsional), jadi halaman ke-2 ---- */
+const attendanceDrop = document.getElementById('attendanceDrop');
+const attendanceInput = document.getElementById('attendanceInput');
+const attendanceList = document.getElementById('attendanceList');
+let attendancePhotos = []; // { id, file, url }
+
+function addAttendancePhotos(files){
+  const f = [...files].find(x => x.type && x.type.startsWith('image/'));
+  if(!f) return;
+  // hanya 1 foto diperbolehkan — foto baru menggantikan yang lama
+  attendancePhotos.forEach(p => URL.revokeObjectURL(p.url));
+  attendancePhotos = [{ id: 'a' + Math.random().toString(36).slice(2), file: f, url: URL.createObjectURL(f) }];
+  renderAttendanceList();
+}
+
+function renderAttendanceList(){
+  attendanceList.innerHTML = attendancePhotos.map(p => `
+    <div class="photo-chip" data-id="${p.id}">
+      <img class="photo-thumb" src="${p.url}" alt="${escapeHtml(p.file.name)}">
+      <button class="remove" data-remove="${p.id}" title="Hapus">✕</button>
+      <div class="fname">${escapeHtml(p.file.name)}</div>
+    </div>
+  `).join('');
+}
+
+attendanceList.addEventListener('click', e=>{
+  const btn = e.target.closest('[data-remove]');
+  if(!btn) return;
+  const id = btn.dataset.remove;
+  const idx = attendancePhotos.findIndex(p => p.id === id);
+  if(idx >= 0){
+    URL.revokeObjectURL(attendancePhotos[idx].url);
+    attendancePhotos.splice(idx, 1);
+    renderAttendanceList();
+  }
+});
+
+['dragenter','dragover'].forEach(evt=>{
+  attendanceDrop.addEventListener(evt, e=>{ e.preventDefault(); attendanceDrop.classList.add('drag'); });
+});
+['dragleave','drop'].forEach(evt=>{
+  attendanceDrop.addEventListener(evt, e=>{ e.preventDefault(); attendanceDrop.classList.remove('drag'); });
+});
+attendanceDrop.addEventListener('drop', e=>{
+  addAttendancePhotos([...e.dataTransfer.files]);
+});
+attendanceInput.addEventListener('change', e=>{
+  addAttendancePhotos([...e.target.files]);
+  attendanceInput.value = '';
+});
+
+function loadImageFile(file){
+  return new Promise((resolve, reject)=>{
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = ()=>{ URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = ()=>{ URL.revokeObjectURL(url); reject(new Error('Gagal memuat foto ' + file.name)); };
+    img.src = url;
+  });
+}
+
+// Bangun canvas A4 landscape dari foto Daftar Hadir. Foto potret otomatis dirotasi 90° agar mengisi halaman landscape.
+async function buildAttendanceCanvas(file, dpi){
+  const img = await loadImageFile(file);
+  const srcW = img.naturalWidth, srcH = img.naturalHeight;
+
+  let work = document.createElement('canvas');
+  if(srcH > srcW){
+    // potret -> rotasi 90° agar jadi landscape
+    work.width = srcH;
+    work.height = srcW;
+    const wctx = work.getContext('2d');
+    wctx.save();
+    wctx.translate(work.width / 2, work.height / 2);
+    wctx.rotate(90 * Math.PI / 180);
+    wctx.drawImage(img, -srcW / 2, -srcH / 2);
+    wctx.restore();
+  } else {
+    work.width = srcW;
+    work.height = srcH;
+    work.getContext('2d').drawImage(img, 0, 0);
+  }
+
+  const A4_MM = { w: 210, h: 297 };
+  const a4wmm = A4_MM.h, a4hmm = A4_MM.w; // landscape: lebar 297mm, tinggi 210mm
+  const a4w = Math.round(a4wmm / 25.4 * dpi);
+  const a4h = Math.round(a4hmm / 25.4 * dpi);
+  const fitScale = Math.min(a4w / work.width, a4h / work.height);
+  const drawW = work.width * fitScale;
+  const drawH = work.height * fitScale;
+  const offsetX = (a4w - drawW) / 2;
+  const offsetY = (a4h - drawH) / 2;
+
+  const final = document.createElement('canvas');
+  final.width = a4w;
+  final.height = a4h;
+  const fctx = final.getContext('2d');
+  fctx.fillStyle = '#FFFFFF';
+  fctx.fillRect(0, 0, a4w, a4h);
+  fctx.imageSmoothingEnabled = true;
+  fctx.imageSmoothingQuality = 'high';
+  fctx.drawImage(work, 0, 0, work.width, work.height, offsetX, offsetY, drawW, drawH);
+  return final;
+}
+
 dpiOptions.addEventListener('click', (e)=>{
   if(isProcessing) return;
   const card = e.target.closest('.option-card');
@@ -517,6 +658,9 @@ function escapeHtml(s){
 resetBtn.addEventListener('click', ()=>{
   zipFiles = [];
   renderZipList();
+  attendancePhotos.forEach(p => URL.revokeObjectURL(p.url));
+  attendancePhotos = [];
+  renderAttendanceList();
   progressPanel.classList.remove('show');
   logEl.innerHTML = '';
   summaryEl.style.display = 'none';
@@ -679,28 +823,46 @@ async function runPipeline(){
     setStatusMsg('Menyusun PDF gabungan…');
     await yieldUI();
 
-    const { jsPDF } = window.jspdf;
-    let doc = null;
+    // Susun daftar seluruh halaman final secara berurutan: cover -> daftar hadir -> isi serah terima
+    const pdfPages = []; // { dataUrl, wmm, hmm, orientation }
 
-    // ---- Halaman cover (Danantara/KAI) sebagai halaman pertama ----
+    // ---- Halaman 1: cover (Danantara/KAI) ----
     const coverData = getCoverData();
     if(coverData.jenisDinasan && coverData.namaStasiun && coverData.bulanLabel && coverData.tahun){
       setStatusMsg('Menyiapkan halaman cover…');
       await yieldUI();
       const coverCanvas = await buildCoverCanvas(coverData, selectedDpi);
-      const coverDataUrl = coverCanvas.toDataURL('image/jpeg', 0.95);
-      doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      doc.addImage(coverDataUrl, 'JPEG', 0, 0, 210, 297);
+      pdfPages.push({ dataUrl: coverCanvas.toDataURL('image/jpeg', 0.95), wmm: 210, hmm: 297, orientation: 'p' });
     }
 
-    for(let i = 0; i < results.length; i++){
-      const r = results[i];
-      if(!doc){
-        doc = new jsPDF({ orientation: r.orientation, unit: 'mm', format: 'a4' });
-      } else {
-        doc.addPage('a4', r.orientation);
+    // ---- Halaman 2 dst: Daftar Hadir / Daftar Dinasan (landscape, auto-rotate jika potret) ----
+    if(attendancePhotos.length > 0){
+      for(let i = 0; i < attendancePhotos.length; i++){
+        setStatusMsg('Menyiapkan Daftar Hadir ' + (i + 1) + ' / ' + attendancePhotos.length + '…');
+        await yieldUI();
+        try{
+          const attCanvas = await buildAttendanceCanvas(attendancePhotos[i].file, selectedDpi);
+          pdfPages.push({ dataUrl: attCanvas.toDataURL('image/jpeg', 0.92), wmm: 297, hmm: 210, orientation: 'l' });
+        }catch(err){
+          log('Daftar Hadir "' + attendancePhotos[i].file.name + '" gagal diproses: ' + err.message, 'err');
+        }
       }
-      doc.addImage(r.dataUrl, 'JPEG', 0, 0, r.wmm, r.hmm);
+    }
+
+    // ---- Halaman berikutnya: isi Serah Terima ----
+    for(const r of results){
+      pdfPages.push({ dataUrl: r.dataUrl, wmm: r.wmm, hmm: r.hmm, orientation: r.orientation });
+    }
+
+    const { jsPDF } = window.jspdf;
+    let doc = null;
+    for(const p of pdfPages){
+      if(!doc){
+        doc = new jsPDF({ orientation: p.orientation, unit: 'mm', format: 'a4' });
+      } else {
+        doc.addPage('a4', p.orientation);
+      }
+      doc.addImage(p.dataUrl, 'JPEG', 0, 0, p.wmm, p.hmm);
     }
 
     const blob = doc.output('blob');
