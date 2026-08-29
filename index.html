@@ -3,10 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PDF → A4 — Gabung 2 Halaman Jadi Satu Lembar</title>
+<title>PDF Hub — Beranda</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
   :root{
     --primary:#4F46E5;
@@ -19,8 +18,13 @@
     --ink-soft:#6B7099;
     --ink-faint:#9296B5;
     --border:#E7E8F2;
-    --success:#16A34A;
-    --success-light:#EAFBF0;
+
+    --accent-a:#4F46E5;   /* IMO - indigo */
+    --accent-a-light:#EEF2FF;
+    --accent-b:#0D9488;   /* Serah Terima PDF - teal */
+    --accent-b-light:#E6FBF8;
+    --accent-c:#EA580C;   /* Convert per File PDF - amber/orange */
+    --accent-c-light:#FFF3EA;
   }
   *{ box-sizing:border-box; }
   html,body{ margin:0; padding:0; }
@@ -33,15 +37,22 @@
   }
 
   .page{
-    max-width:840px;
+    max-width:1040px;
     margin:0 auto;
   }
 
+  /* Topbar */
   .topbar{
     display:flex;
     align-items:center;
+    justify-content:space-between;
     gap:12px;
     margin-bottom:28px;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
   }
   .logo{
     width:38px;height:38px;
@@ -65,262 +76,161 @@
     color:var(--ink-faint);
     margin-top:1px;
   }
-
-  .heading{
-    margin-bottom:22px;
+  .topbar-badge{
+    font-size:12px;
+    font-weight:600;
+    color:var(--ink-soft);
+    background:var(--card);
+    border:1px solid var(--border);
+    padding:8px 14px;
+    border-radius:999px;
   }
-  .heading h1{
-    font-size:26px;
+
+  /* Hero */
+  .hero{
+    position:relative;
+    overflow:hidden;
+    border-radius:20px;
+    background:linear-gradient(135deg, var(--primary) 0%, #6D5BF0 55%, #8B7CF6 100%);
+    color:#fff;
+    padding:34px 28px;
+    margin-bottom:32px;
+  }
+  .hero h1{
+    margin:0 0 8px;
+    font-size:24px;
     font-weight:800;
     letter-spacing:-0.02em;
-    margin:0 0 4px;
   }
-  .heading p{
+  .hero p{
     margin:0;
-    color:var(--ink-soft);
-    font-size:14.5px;
+    max-width:520px;
+    font-size:14px;
+    line-height:1.6;
+    color:rgba(255,255,255,0.85);
   }
+  .hero-shapes{
+    position:absolute;
+    right:-30px;
+    top:-30px;
+    width:260px;
+    height:260px;
+    pointer-events:none;
+  }
+  .hero-doc{
+    position:absolute;
+    border-radius:14px;
+    background:rgba(255,255,255,0.14);
+    border:1px solid rgba(255,255,255,0.25);
+  }
+  .hero-doc.d1{ width:100px; height:130px; right:70px; top:35px; transform:rotate(-8deg); }
+  .hero-doc.d2{ width:100px; height:130px; right:20px; top:60px; transform:rotate(9deg); background:rgba(255,255,255,0.22); }
+  .hero-doc.d3{ width:66px; height:66px; right:130px; top:130px; border-radius:50%; background:rgba(255,255,255,0.16); }
 
+  /* Section */
   .section-title{
     display:flex;
     align-items:center;
     justify-content:space-between;
-    margin:26px 0 12px;
+    margin:0 0 16px;
   }
   .section-title h2{
-    font-size:15px;
+    font-size:16px;
     font-weight:700;
     margin:0;
     color:var(--ink);
   }
-  .badge{
-    font-size:11.5px;
-    font-weight:600;
-    color:var(--ink-soft);
-    background:var(--primary-light);
-    padding:4px 10px;
-    border-radius:999px;
-  }
-
-  /* Option cards (DPI selector), styled like the reference app's tab cards */
-  .option-row{
-    display:grid;
-    grid-template-columns:repeat(3, 1fr);
-    gap:12px;
-  }
-  .option-card{
-    background:var(--card);
-    border:1.5px solid var(--border);
-    border-radius:14px;
-    padding:16px;
-    cursor:pointer;
-    display:flex;
-    gap:12px;
-    align-items:flex-start;
-    transition:border-color .15s ease, background .15s ease, box-shadow .15s ease;
-  }
-  .option-card:hover{ border-color:#C7C9E8; }
-  .option-card.active{
-    border-color:var(--primary);
-    background:var(--primary-light);
-    box-shadow:0 0 0 3px var(--primary-ring);
-  }
-  .option-icon{
-    width:34px;height:34px;
-    border-radius:9px;
-    background:var(--primary-light);
-    color:var(--primary);
-    display:flex;align-items:center;justify-content:center;
-    font-weight:700;
-    font-size:13px;
-    flex-shrink:0;
-  }
-  .option-card.active .option-icon{
-    background:var(--primary);
-    color:#fff;
-  }
-  .option-title{
-    font-weight:700;
-    font-size:13.5px;
-    color:var(--ink);
-    margin-bottom:2px;
-  }
-  .option-sub{
+  .section-title span{
     font-size:12px;
     color:var(--ink-faint);
-    line-height:1.4;
   }
 
-  /* Upload card */
-  .panel{
-    background:var(--card);
-    border:1px solid var(--border);
-    border-radius:16px;
-    overflow:hidden;
+  /* Menu cards */
+  .menu-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:16px;
   }
-  .drop{
+  .menu-card{
     display:block;
-    padding:38px 20px;
-    text-align:center;
-    cursor:pointer;
-    position:relative;
-    border-bottom:1px solid var(--border);
-    transition:background .15s ease;
+    text-decoration:none;
+    color:inherit;
+    background:var(--card);
+    border:1.5px solid var(--border);
+    border-radius:18px;
+    padding:22px 20px;
+    transition:border-color .15s ease, transform .15s ease, box-shadow .15s ease;
   }
-  .drop.drag{ background:var(--primary-light); }
-  .drop input{ position:absolute; inset:0; opacity:0; cursor:pointer; }
-  .drop-icon{
-    width:44px;height:44px;
-    margin:0 auto 14px;
+  .menu-card:hover{
+    border-color:var(--card-accent, var(--primary));
+    transform:translateY(-3px);
+    box-shadow:0 14px 28px rgba(24,27,52,0.08);
+  }
+  .menu-icon{
+    width:46px;height:46px;
     border-radius:12px;
-    background:var(--primary-light);
-    color:var(--primary);
     display:flex;align-items:center;justify-content:center;
-    font-size:18px;
-    font-weight:700;
+    margin-bottom:16px;
+    background:var(--card-accent-light);
+    color:var(--card-accent);
   }
-  .drop-title{
+  .menu-icon svg{ width:22px; height:22px; }
+  .menu-title{
     font-weight:700;
-    font-size:14.5px;
-    margin:0 0 4px;
+    font-size:15px;
     color:var(--ink);
+    margin-bottom:6px;
   }
-  .drop-sub{
+  .menu-desc{
     font-size:12.5px;
     color:var(--ink-faint);
-    margin:0;
+    line-height:1.55;
+    margin-bottom:16px;
   }
-  .filename{
-    display:inline-block;
-    margin-top:12px;
-    font-size:12.5px;
-    font-weight:600;
-    color:var(--primary-dark);
-    background:var(--primary-light);
-    padding:5px 12px;
-    border-radius:999px;
-  }
-  .filename:empty{ display:none; }
-
-  .status-row{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:14px 20px;
-    border-bottom:1px solid var(--border);
-    gap:12px;
-    flex-wrap:wrap;
-  }
-  .status-pill{
+  .menu-go{
     display:inline-flex;
     align-items:center;
-    gap:7px;
+    gap:6px;
     font-size:12.5px;
-    font-weight:600;
-    color:var(--ink-soft);
+    font-weight:700;
+    color:var(--card-accent);
   }
-  .status-pill .led{
-    width:7px;height:7px;
-    border-radius:50%;
-    background:#C9CBE0;
-    transition:background .2s ease, box-shadow .2s ease;
-  }
-  .status-pill.processing .led{ background:var(--primary); box-shadow:0 0 0 3px var(--primary-ring); }
-  .status-pill.done .led{ background:var(--success); box-shadow:0 0 0 3px var(--success-light); }
-  .status-pill.error .led{ background:#DC2626; box-shadow:0 0 0 3px #FEE2E2; }
-  .status-msg{
-    font-size:12.5px;
-    color:var(--ink-faint);
-  }
-  .status-msg.err{ color:#DC2626; font-weight:600; }
+  .menu-go svg{ width:14px; height:14px; transition:transform .15s ease; }
+  .menu-card:hover .menu-go svg{ transform:translateX(3px); }
 
-  .preview-area{
-    padding:20px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    min-height:140px;
-    background:
-      repeating-conic-gradient(#F2F2F8 0% 25%, #FAFAFD 0% 50%) 50% / 18px 18px;
-  }
-  .preview-area .empty{
-    color:var(--ink-faint);
-    font-size:13px;
-  }
-  .preview-area canvas{
-    display:none;
-    max-width:100%;
-    height:auto;
-    border-radius:6px;
-    box-shadow:0 8px 24px rgba(24,27,52,0.16);
-  }
-  .preview-area canvas.show{ display:block; }
+  .card-a{ --card-accent:var(--accent-a); --card-accent-light:var(--accent-a-light); }
+  .card-b{ --card-accent:var(--accent-b); --card-accent-light:var(--accent-b-light); }
+  .card-c{ --card-accent:var(--accent-c); --card-accent-light:var(--accent-c-light); }
 
-  .meta-table{
-    border-top:1px solid var(--border);
-  }
-  .meta-row{
-    display:flex;
-    justify-content:space-between;
-    padding:11px 20px;
-    font-size:12.5px;
-    border-bottom:1px solid var(--border);
-  }
-  .meta-row:last-child{ border-bottom:none; }
-  .meta-label{
-    color:var(--ink-faint);
-    font-weight:600;
+  .menu-card.soon{ cursor:default; }
+  .soon-pill{
+    display:inline-block;
+    font-size:10.5px;
+    font-weight:700;
     letter-spacing:0.02em;
     text-transform:uppercase;
-    font-size:11px;
-  }
-  .meta-value{
-    color:var(--ink);
-    font-weight:600;
-  }
-  .meta-table:empty{ display:none; }
-
-  .actions{
-    padding:18px 20px 20px;
-    display:flex;
-    justify-content:flex-end;
-  }
-  button.primary{
-    font-family:'Inter', sans-serif;
-    font-weight:700;
-    font-size:13.5px;
-    background:var(--primary);
-    color:#fff;
-    border:none;
-    border-radius:10px;
-    padding:11px 20px;
-    cursor:pointer;
-    transition:background .15s ease, transform .1s ease;
-  }
-  button.primary:hover{ background:var(--primary-dark); }
-  button.primary:active{ transform:translateY(1px); }
-  button.primary:disabled{
-    background:#D3D4E6;
-    cursor:not-allowed;
-  }
-  button.primary:focus-visible{
-    outline:2px solid var(--primary-dark);
-    outline-offset:2px;
+    color:var(--ink-faint);
+    background:var(--bg);
+    border:1px solid var(--border);
+    padding:3px 8px;
+    border-radius:999px;
+    margin-bottom:10px;
   }
 
   .footnote{
-    margin-top:18px;
+    margin-top:28px;
     font-size:12px;
     color:var(--ink-faint);
     line-height:1.6;
     padding:0 4px;
+    text-align:center;
   }
 
-  @media (max-width:560px){
-    .option-row{ grid-template-columns:1fr; }
-    .heading h1{ font-size:22px; }
+  @media (max-width:760px){
+    .menu-grid{ grid-template-columns:1fr; }
+    .hero-shapes{ display:none; }
+    .hero{ padding:26px 22px; }
   }
-  @media (prefers-reduced-motion: reduce){ *{ transition:none !important; } }
 </style>
 </head>
 <body>
@@ -328,370 +238,71 @@
 <div class="page">
 
   <div class="topbar">
-    <div class="logo">PA</div>
-    <div>
-      <div class="brand-name">PDF → A4</div>
-      <div class="brand-tag">Built by 69451</div>
+    <div class="brand">
+      <div class="logo">PH</div>
+      <div>
+        <div class="brand-name">PDF Hub</div>
+        <div class="brand-tag">Built by 69451</div>
+      </div>
     </div>
+    <span class="topbar-badge">3 Menu Tersedia</span>
   </div>
 
-  <div class="heading">
-    <h1>Gabung PDF ke Satu Lembar A4</h1>
-    <p>Susun 2 halaman PDF bertumpuk atas–bawah ke satu lembar A4, siap diunduh sebagai JPG.</p>
+  <div class="hero">
+    <div class="hero-shapes">
+      <div class="hero-doc d1"></div>
+      <div class="hero-doc d2"></div>
+      <div class="hero-doc d3"></div>
+    </div>
+    <h1>Selamat Datang di PDF Hub</h1>
+    <p>Pusat kumpulan alat bantu dokumen PDF. Pilih salah satu menu di bawah untuk mulai bekerja.</p>
   </div>
 
   <div class="section-title">
-    <h2>Resolusi Keluaran</h2>
-    <span class="badge" id="dpiBadge">300 DPI</span>
+    <h2>Pilih Menu</h2>
+    <span>Ketuk salah satu kartu untuk membuka</span>
   </div>
-  <div class="option-row" id="dpiOptions">
-    <div class="option-card" data-dpi="150">
-      <div class="option-icon">S</div>
-      <div>
-        <div class="option-title">Standar</div>
-        <div class="option-sub">150 DPI · proses cepat</div>
+
+  <div class="menu-grid">
+
+    <a class="menu-card soon card-a" href="imo.html">
+      <div class="menu-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
       </div>
-    </div>
-    <div class="option-card active" data-dpi="300">
-      <div class="option-icon">T</div>
-      <div>
-        <div class="option-title">Tinggi</div>
-        <div class="option-sub">300 DPI · teks tetap tajam</div>
+      <div class="menu-title">IMO</div>
+      <div class="menu-desc">Menu IMO — akan segera tersedia.</div>
+      <span class="menu-go">Buka menu
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+      </span>
+    </a>
+
+    <a class="menu-card soon card-b" href="serah-terima-pdf.html">
+      <div class="menu-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
       </div>
-    </div>
-    <div class="option-card" data-dpi="450">
-      <div class="option-icon">ST</div>
-      <div>
-        <div class="option-title">Sangat Tinggi</div>
-        <div class="option-sub">450 DPI · detail maksimal</div>
+      <div class="menu-title">Serah Terima PDF</div>
+      <div class="menu-desc">Menu Serah Terima PDF — akan segera tersedia.</div>
+      <span class="menu-go">Buka menu
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+      </span>
+    </a>
+
+    <a class="menu-card card-c" href="convert-per-file-pdf.html">
+      <div class="menu-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v6h6M20 20v-6h-6"></path><path d="M20 8a8 8 0 0 0-14.9-3.7M4 16a8 8 0 0 0 14.9 3.7"></path></svg>
       </div>
-    </div>
+      <div class="menu-title">Convert per File PDF</div>
+      <div class="menu-desc">Gabung 2 halaman PDF jadi satu lembar A4, siap diunduh sebagai JPG.</div>
+      <span class="menu-go">Buka menu
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+      </span>
+    </a>
+
   </div>
 
-  <div class="section-title">
-    <h2>Unggah Berkas</h2>
-    <span class="badge">PDF · 2 halaman</span>
-  </div>
-
-  <div class="panel">
-    <label class="drop" id="drop">
-      <input type="file" id="fileInput" accept="application/pdf">
-      <div class="drop-icon">↑</div>
-      <p class="drop-title">Tarik file ke sini, atau klik untuk pilih</p>
-      <p class="drop-sub">Hanya PDF dengan tepat 2 halaman</p>
-      <span class="filename" id="filename"></span>
-    </label>
-
-    <div class="status-row">
-      <span class="status-pill" id="statusPill"><span class="led"></span><span id="statusLabel">Menunggu berkas</span></span>
-      <span class="status-msg" id="statusMsg"></span>
-    </div>
-
-    <div class="preview-area" id="previewArea">
-      <span class="empty" id="previewEmpty">Pratinjau akan muncul di sini.</span>
-      <canvas id="canvas"></canvas>
-    </div>
-
-    <div class="meta-table" id="metaTable"></div>
-
-    <div class="actions">
-      <button class="primary" id="downloadBtn" disabled>Unduh JPG</button>
-    </div>
-  </div>
-
-  <p class="footnote">Semua proses berjalan di browser Anda — file PDF tidak diunggah ke server mana pun. Kedua halaman dipangkas dari spasi kosong, ditumpuk bertumpuk atas–bawah, lalu disusun mengisi satu lembar A4 tanpa memotong konten. Orientasi (potret/lanskap) ditentukan otomatis dari proporsi hasil gabungan.</p>
+  <p class="footnote">Semua alat berjalan langsung di browser Anda — tidak ada file yang diunggah ke server mana pun.</p>
 
 </div>
-
-<script>
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-const fileInput = document.getElementById('fileInput');
-const drop = document.getElementById('drop');
-const filenameEl = document.getElementById('filename');
-const statusPill = document.getElementById('statusPill');
-const statusLabel = document.getElementById('statusLabel');
-const statusMsg = document.getElementById('statusMsg');
-const previewArea = document.getElementById('previewArea');
-const previewEmpty = document.getElementById('previewEmpty');
-const canvas = document.getElementById('canvas');
-const metaTable = document.getElementById('metaTable');
-const downloadBtn = document.getElementById('downloadBtn');
-const dpiOptions = document.getElementById('dpiOptions');
-const dpiBadge = document.getElementById('dpiBadge');
-
-let currentFile = null;
-let resultBlobUrl = null;
-let selectedDpi = 300;
-
-dpiOptions.addEventListener('click', (e)=>{
-  const card = e.target.closest('.option-card');
-  if(!card) return;
-  [...dpiOptions.children].forEach(c => c.classList.remove('active'));
-  card.classList.add('active');
-  selectedDpi = parseInt(card.dataset.dpi, 10);
-  dpiBadge.textContent = selectedDpi + ' DPI';
-  if(currentFile) processFile(currentFile);
-});
-
-function setPill(stage){
-  statusPill.classList.remove('processing','done','error');
-  if(stage === 'idle'){ statusLabel.textContent = 'Menunggu berkas'; }
-  if(stage === 'loaded'){ statusLabel.textContent = 'Berkas diterima'; statusPill.classList.add('processing'); }
-  if(stage === 'processing'){ statusLabel.textContent = 'Memproses'; statusPill.classList.add('processing'); }
-  if(stage === 'done'){ statusLabel.textContent = 'Selesai'; statusPill.classList.add('done'); }
-  if(stage === 'error'){ statusLabel.textContent = 'Gagal'; statusPill.classList.add('error'); }
-}
-
-function setStatus(msg, isError){
-  statusMsg.textContent = msg || '';
-  statusMsg.classList.toggle('err', !!isError);
-}
-
-['dragenter','dragover'].forEach(evt=>{
-  drop.addEventListener(evt, e=>{ e.preventDefault(); drop.classList.add('drag'); });
-});
-['dragleave','drop'].forEach(evt=>{
-  drop.addEventListener(evt, e=>{ e.preventDefault(); drop.classList.remove('drag'); });
-});
-drop.addEventListener('drop', e=>{
-  const f = e.dataTransfer.files[0];
-  if(f) handleFile(f);
-});
-fileInput.addEventListener('change', e=>{
-  const f = e.target.files[0];
-  if(f) handleFile(f);
-});
-
-function handleFile(file){
-  if(file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')){
-    setStatus('Berkas harus berformat PDF.', true);
-    setPill('error');
-    return;
-  }
-  currentFile = file;
-  filenameEl.textContent = file.name;
-  setPill('loaded');
-  processFile(file);
-}
-
-async function processFile(file){
-  downloadBtn.disabled = true;
-  canvas.classList.remove('show');
-  previewEmpty.style.display = 'block';
-  metaTable.innerHTML = '';
-  setPill('processing');
-  setStatus('Membaca berkas PDF…');
-
-  try{
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-
-    if(pdf.numPages !== 2){
-      setStatus('PDF ini punya ' + pdf.numPages + ' halaman. Alat ini butuh tepat 2 halaman.', true);
-      setPill('error');
-      return;
-    }
-
-    const dpi = selectedDpi;
-    const scale = dpi / 72;
-
-    setStatus('Merender halaman 1…');
-    const page1 = await pdf.getPage(1);
-    const canvas1 = renderCanvasForPage(page1, scale);
-    await drawPageToCanvas(page1, canvas1, scale);
-
-    setStatus('Merender halaman 2…');
-    const page2 = await pdf.getPage(2);
-    const canvas2 = renderCanvasForPage(page2, scale);
-    await drawPageToCanvas(page2, canvas2, scale);
-
-    setStatus('Memangkas spasi kosong…');
-    const trimmed1 = cropCanvas(canvas1, detectContentBounds(canvas1));
-    const trimmed2 = cropCanvas(canvas2, detectContentBounds(canvas2));
-
-    setStatus('Menyusun ke lembar A4…');
-    const finalCanvas = composeOntoA4(trimmed1, trimmed2, dpi);
-
-    canvas.width = finalCanvas.width;
-    canvas.height = finalCanvas.height;
-    canvas.getContext('2d').drawImage(finalCanvas, 0, 0);
-    canvas.classList.add('show');
-    previewEmpty.style.display = 'none';
-
-    const mmW = finalCanvas.width / dpi * 25.4;
-    const mmH = finalCanvas.height / dpi * 25.4;
-    const orientation = finalCanvas.width > finalCanvas.height ? 'A4 Lanskap' : 'A4 Potret';
-    metaTable.innerHTML =
-      metaRow('Orientasi', orientation) +
-      metaRow('Dimensi Piksel', finalCanvas.width + ' × ' + finalCanvas.height + ' px') +
-      metaRow('Ukuran Cetak', mmW.toFixed(0) + ' × ' + mmH.toFixed(0) + ' mm') +
-      metaRow('Resolusi', dpi + ' DPI');
-
-    finalCanvas.toBlob(blob=>{
-      if(resultBlobUrl) URL.revokeObjectURL(resultBlobUrl);
-      resultBlobUrl = URL.createObjectURL(blob);
-      downloadBtn.disabled = false;
-    }, 'image/jpeg', 0.95);
-
-    setStatus('Siap diunduh.');
-    setPill('done');
-  }catch(err){
-    console.error(err);
-    setStatus('Gagal memproses PDF: ' + err.message, true);
-    setPill('error');
-  }
-}
-
-function metaRow(label, value){
-  return '<div class="meta-row"><span class="meta-label">' + label + '</span><span class="meta-value">' + value + '</span></div>';
-}
-
-function renderCanvasForPage(page, scale){
-  const viewport = page.getViewport({ scale });
-  const c = document.createElement('canvas');
-  c.width = Math.ceil(viewport.width);
-  c.height = Math.ceil(viewport.height);
-  return c;
-}
-
-async function drawPageToCanvas(page, c, scale){
-  const viewport = page.getViewport({ scale });
-  const ctx = c.getContext('2d');
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(0, 0, c.width, c.height);
-  await page.render({ canvasContext: ctx, viewport }).promise;
-}
-
-function detectContentBounds(canvas){
-  const maxDim = 800;
-  const scale = Math.min(1, maxDim / Math.max(canvas.width, canvas.height));
-  const tmp = document.createElement('canvas');
-  tmp.width = Math.max(1, Math.round(canvas.width * scale));
-  tmp.height = Math.max(1, Math.round(canvas.height * scale));
-  const tctx = tmp.getContext('2d');
-  tctx.drawImage(canvas, 0, 0, tmp.width, tmp.height);
-  const data = tctx.getImageData(0, 0, tmp.width, tmp.height).data;
-
-  const threshold = 248;
-  let minX = tmp.width, minY = tmp.height, maxX = -1, maxY = -1;
-  for(let y = 0; y < tmp.height; y++){
-    for(let x = 0; x < tmp.width; x++){
-      const idx = (y * tmp.width + x) * 4;
-      const r = data[idx], g = data[idx+1], b = data[idx+2], a = data[idx+3];
-      if(a > 10 && (r < threshold || g < threshold || b < threshold)){
-        if(x < minX) minX = x;
-        if(x > maxX) maxX = x;
-        if(y < minY) minY = y;
-        if(y > maxY) maxY = y;
-      }
-    }
-  }
-
-  if(maxX < minX || maxY < minY){
-    return { x: 0, y: 0, width: canvas.width, height: canvas.height };
-  }
-
-  const invScale = 1 / scale;
-  let x = Math.floor(minX * invScale);
-  let y = Math.floor(minY * invScale);
-  let w = Math.ceil((maxX - minX + 1) * invScale);
-  let h = Math.ceil((maxY - minY + 1) * invScale);
-
-  const padX = Math.round(canvas.width * 0.012);
-  const padY = Math.round(canvas.height * 0.012);
-  x = Math.max(0, x - padX);
-  y = Math.max(0, y - padY);
-  w = Math.min(canvas.width - x, w + padX * 2);
-  h = Math.min(canvas.height - y, h + padY * 2);
-
-  return { x, y, width: w, height: h };
-}
-
-function cropCanvas(canvas, bounds){
-  const c = document.createElement('canvas');
-  c.width = bounds.width;
-  c.height = bounds.height;
-  const ctx = c.getContext('2d');
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(0, 0, c.width, c.height);
-  ctx.drawImage(canvas, bounds.x, bounds.y, bounds.width, bounds.height, 0, 0, bounds.width, bounds.height);
-  return c;
-}
-
-function composeOntoA4(canvas1, canvas2, dpi){
-  const stackWidth = Math.max(canvas1.width, canvas2.width);
-  const dividerGap = Math.round(dpi * 0.04);
-  const stackHeight = canvas1.height + canvas2.height + dividerGap;
-
-  const stack = document.createElement('canvas');
-  stack.width = stackWidth;
-  stack.height = stackHeight;
-  const sctx = stack.getContext('2d');
-  sctx.fillStyle = '#FFFFFF';
-  sctx.fillRect(0, 0, stackWidth, stackHeight);
-  sctx.drawImage(canvas1, (stackWidth - canvas1.width) / 2, 0);
-  sctx.drawImage(canvas2, (stackWidth - canvas2.width) / 2, canvas1.height + dividerGap);
-
-  const A4_MM = { w: 210, h: 297 };
-  const isPortrait = stackHeight >= stackWidth;
-  const a4wmm = isPortrait ? A4_MM.w : A4_MM.h;
-  const a4hmm = isPortrait ? A4_MM.h : A4_MM.w;
-  const a4w = Math.round(a4wmm / 25.4 * dpi);
-  const a4h = Math.round(a4hmm / 25.4 * dpi);
-
-  const availW = a4w;
-  const availH = a4h;
-
-  const fitScale = Math.min(availW / stackWidth, availH / stackHeight);
-  const drawW = stackWidth * fitScale;
-  const drawH = stackHeight * fitScale;
-  const offsetX = (a4w - drawW) / 2;
-  const offsetY = (a4h - drawH) / 2;
-
-  const final = document.createElement('canvas');
-  final.width = a4w;
-  final.height = a4h;
-  const fctx = final.getContext('2d');
-  fctx.fillStyle = '#FFFFFF';
-  fctx.fillRect(0, 0, a4w, a4h);
-  fctx.imageSmoothingEnabled = true;
-  fctx.imageSmoothingQuality = 'high';
-  fctx.drawImage(stack, 0, 0, stackWidth, stackHeight, offsetX, offsetY, drawW, drawH);
-
-  return final;
-}
-
-// Ganti URL di bawah ini dengan URL hasil "Deploy > Web app" dari Apps Script Anda.
-// Contoh: https://script.google.com/macros/s/AKfycbXXXXXXXXXXXXXXXXXXXXXX/exec
-const COUNTER_URL = 'https://script.google.com/macros/s/AKfycby0AVNrofzwUTcT6eTPCSnSOPiVnHBmtJgkqgSWC8XYe7GyO5vZg5kWU4mi5ncdhAd8Ug/exec';
-
-function recordUsage(){
-  if(!COUNTER_URL || COUNTER_URL.indexOf('GANTI_DENGAN') === 0){
-    console.warn('COUNTER_URL belum diisi — pencatatan penggunaan dilewati.');
-    return;
-  }
-  // no-cors: kirim saja tanpa menunggu/memakai isi balasannya, supaya tidak
-  // terhalang kebijakan CORS Apps Script dan tidak memblokir proses unduh.
-  fetch(COUNTER_URL, { method: 'POST', mode: 'no-cors' }).catch(()=>{
-    // Diamkan errornya — pencatatan gagal tidak boleh mengganggu proses unduh.
-  });
-}
-
-downloadBtn.addEventListener('click', ()=>{
-  if(!resultBlobUrl) return;
-  const a = document.createElement('a');
-  const baseName = currentFile ? currentFile.name.replace(/\.pdf$/i, '') : 'dokumen';
-  a.href = resultBlobUrl;
-  a.download = baseName + '-A4.jpg';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  recordUsage();
-});
-
-setPill('idle');
-</script>
 
 </body>
 </html>
