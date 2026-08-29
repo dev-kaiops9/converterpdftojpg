@@ -192,7 +192,7 @@
 
   <div class="heading">
     <h1>Serah Terima PDF</h1>
-    <p>Unggah beberapa file ZIP berisi PDF "Serah Terima PPKA". Sistem akan membuang PDF dengan ID duplikat (tanggal boleh sama), mengonversi tiap PDF ke satu lembar A4, lalu menggabungkan semuanya jadi satu PDF terurut berdasarkan tanggal dan ID.</p>
+    <p>Unggah file ZIP berisi PDF "Serah Terima ...". Pastikan semua file di dalam ZIP berasal dari kategori/jabatan yang sama (contoh: khusus dinas PPKA atau khusus dinas PLR). Sistem akan otomatis menggabungkannya menjadi satu PDF terurut. </p>
   </div>
 
   <div class="section-title">
@@ -224,7 +224,7 @@
       <input type="file" id="zipInput" accept=".zip" multiple>
       <div class="drop-icon">↑</div>
       <p class="drop-title">Tarik beberapa file ZIP ke sini, atau klik untuk pilih</p>
-      <p class="drop-sub">Setiap ZIP berisi PDF bernama "Serah Terima PPKA DD-MM-YYYY(ID)"</p>
+      <p class="drop-sub">Setiap ZIP berisi PDF bernama "Serah Terima ... DD-MM-YYYY(ID)"</p>
     </label>
 
     <div class="zip-list" id="zipList"></div>
@@ -248,14 +248,14 @@
     </div>
   </div>
 
-  <p class="footnote">Semua proses berjalan di browser Anda — file ZIP dan PDF tidak diunggah ke server mana pun. Nama file harus mengikuti format "Serah Terima PPKA DD-MM-YYYY(ID)" agar bisa dikenali.</p>
+  <p class="footnote">Semua proses berjalan di browser Anda — file ZIP dan PDF tidak diunggah ke server mana pun. Nama file harus diawali "Serah Terima" dan mengandung tanggal DD-MM-YYYY serta ID dalam kurung, misal "Serah Terima PPKA 01-08-2026(367891).pdf" — bagian tengah bebas apa saja.</p>
 
 </div>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-const NAME_RE = /^Serah\s+Terima\s+PPKA\s+(\d{2})-(\d{2})-(\d{4})\(([^)]+)\)\.pdf$/i;
+const NAME_RE = /^Serah\s+Terima\b.*?(\d{2})-(\d{2})-(\d{4})\(([^)]+)\)\.pdf$/i;
 
 const dpiOptions = document.getElementById('dpiOptions');
 const dpiBadge = document.getElementById('dpiBadge');
