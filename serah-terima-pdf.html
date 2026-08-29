@@ -192,7 +192,7 @@
 
   <div class="heading">
     <h1>Serah Terima PDF</h1>
-    <p>Unggah beberapa file ZIP berisi PDF "Serah Terima PPKA". Sistem akan mencocokkan tanggal &amp; ID, membuang duplikat, mengonversi tiap PDF ke satu lembar A4, lalu menggabungkan semuanya jadi satu PDF terurut.</p>
+    <p>Unggah beberapa file ZIP berisi PDF "Serah Terima PPKA". Sistem akan membuang PDF dengan ID duplikat (tanggal boleh sama), mengonversi tiap PDF ke satu lembar A4, lalu menggabungkan semuanya jadi satu PDF terurut berdasarkan tanggal dan ID.</p>
   </div>
 
   <div class="section-title">
@@ -408,7 +408,7 @@ async function runPipeline(){
         }
         const [, dd, mm, yyyy, id] = m;
         const dateKey = yyyy + '-' + mm + '-' + dd;
-        const key = dateKey + '_' + id;
+        const key = id; // dedup hanya berdasarkan ID PDF — tanggal boleh sama/duplikat
         if(candidates.has(key)){
           duplicateCount++;
         } else {
@@ -540,7 +540,7 @@ function renderSummary(info){
   let html = `
     <div class="summary-grid">
       <div class="summary-box"><div class="num">${info.totalUnique}</div><div class="lbl">PDF Unik</div></div>
-      <div class="summary-box"><div class="num">${info.duplicateCount}</div><div class="lbl">Duplikat Dilewati</div></div>
+      <div class="summary-box"><div class="num">${info.duplicateCount}</div><div class="lbl">Duplikat ID Dilewati</div></div>
       <div class="summary-box"><div class="num">${info.successCount}</div><div class="lbl">Berhasil Digabung</div></div>
     </div>
   `;
